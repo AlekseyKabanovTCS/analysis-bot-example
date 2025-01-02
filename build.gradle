@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'ru.tinkoff.piapi:java-sdk-core:1.27'
+    implementation 'org.apache.commons:commons-compress:1.27.1'
+    implementation 'ch.qos.logback:logback-classic:1.5.15'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'org.ta4j:ta4j-core:0.17'
+}
+
+test {
+    useJUnitPlatform()
+}
