@@ -25,7 +25,7 @@ public class CsvHistoryReader {
         long startTime = System.currentTimeMillis();
         List<BarData> bars = new LinkedList<>();
         IntStream.rangeClosed(startYear, stopYear)
-                .mapToObj(year -> FILENAME_PATTERN.formatted(instrumentUid, year))
+                .mapToObj(year -> String.format(FILENAME_PATTERN, instrumentUid, year))
                 .forEach(fileName -> {
                     try (ZipFile zip = ZipFile.builder().setFile(fileName).get()) {
                         Collections.list(zip.getEntries()).stream()
@@ -64,7 +64,7 @@ public class CsvHistoryReader {
                 Double.parseDouble(data[4]), // high
                 Double.parseDouble(data[2]), // open
                 Double.parseDouble(data[3]), // close
-                Double.parseDouble(data[6]) //volume
+                Long.parseLong(data[6]) //volume
         );
     }
 }

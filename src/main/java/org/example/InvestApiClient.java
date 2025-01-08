@@ -21,15 +21,10 @@ public class InvestApiClient {
     private static final OkHttpClient client = new OkHttpClient();
 
     public void downloadHistoricalDataArchive(String token, String instrumentUid, int year) {
-        String fileName = FILENAME_PATTERN.formatted(instrumentUid, year);
-        File file = new File(fileName);
-        if (file.exists()) {
-            log.info("File already exists, skipping download: {}", fileName);
-            return;
-        }
+        String fileName = String.format(FILENAME_PATTERN, instrumentUid, year);
         Request request = new Request.Builder()
-                .url(HISTORY_DATA_URL.formatted(instrumentUid, year))
-                .addHeader(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(token))
+                .url(String.format(HISTORY_DATA_URL, instrumentUid, year))
+                .addHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token))
                 .build();
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
