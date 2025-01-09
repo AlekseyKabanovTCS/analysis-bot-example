@@ -29,10 +29,10 @@ public class BarSeriesCreator {
         ListIterator<BarData> iterator = bars.listIterator();
         while (iterator.hasNext()) {
             BarData firstBar = iterator.next();
-            ZonedDateTime startTime = ZonedDateTime.parse(firstBar.getStartTime());
+            ZonedDateTime startTime = roundFloorStartTime(ZonedDateTime.parse(firstBar.getStartTime()), candleInterval);
             ZonedDateTime endTime = getEndTime(startTime, candleInterval);
             BarData aggregatedBar = aggregateBars(iterator, firstBar, endTime, candleInterval);
-            addBarToSeries(series, aggregatedBar, endTime);
+            addBarToSeries(series, aggregatedBar, startTime, endTime);
         }
         long duration = System.currentTimeMillis() - startTimeMs;
         log.info("BarSeries was successfully created within {} ms", duration);
@@ -84,10 +84,10 @@ public class BarSeriesCreator {
                 close = currentBar.getClose();
             }
         }
-        return new BarData(firstBar.getStartTime(), low, high, firstBar.getOpen(), close, volume);
+        return new BarData("", low, high, firstBar.getOpen(), close, volume);
     }
 
-    private void addBarToSeries(BarSeries series, BarData aggregatedBar,ZonedDateTime endTime) {
+    private void addBarToSeries(BarSeries series, BarData aggregatedBar, ZonedDateTime startTime, ZonedDateTime endTime) {
         series.addBar(BaseBar.builder()
                 .endTime(endTime)
                 .openPrice(DoubleNum.valueOf(aggregatedBar.getOpen()))
@@ -95,12 +95,38 @@ public class BarSeriesCreator {
                 .highPrice(DoubleNum.valueOf(aggregatedBar.getHigh()))
                 .lowPrice(DoubleNum.valueOf(aggregatedBar.getLow()))
                 .volume(DoubleNum.valueOf(aggregatedBar.getVolume()))
-                .timePeriod(Duration.between(ZonedDateTime.parse(aggregatedBar.getStartTime()), endTime))
+                .timePeriod(Duration.between(startTime, endTime))
                 .build());
     }
 
+    public ZonedDateTime roundFloorStartTime(ZonedDateTime startTime, CandleInterval candleInterval) {
+        switch (candleInterval) {
+            case CANDLE_INTERVAL_2_MIN:
+                return startTime.withMinute(startTime.getMinute() - startTime.getMinute() % 2);
+            case CANDLE_INTERVAL_3_MIN:
+                return startTime.withMinute(startTime.getMinute() - startTime.getMinute() % 3);
+            case CANDLE_INTERVAL_5_MIN:
+                return startTime.withMinute(startTime.getMinute() - startTime.getMinute() % 5);
+            case CANDLE_INTERVAL_10_MIN:
+                return startTime.withMinute(startTime.getMinute() - startTime.getMinute() % 10);
+            case CANDLE_INTERVAL_15_MIN:
+                return startTime.withMinute(startTime.getMinute() - startTime.getMinute() % 15);
+            case CANDLE_INTERVAL_30_MIN:
+                return startTime.withMinute(startTime.getMinute() - startTime.getMinute() % 30);
+            case CANDLE_INTERVAL_HOUR:
+            case CANDLE_INTERVAL_2_HOUR:
+            case CANDLE_INTERVAL_4_HOUR:
+                return startTime.truncatedTo(ChronoUnit.HOURS);
+            case CANDLE_INTERVAL_DAY:
+            case CANDLE_INTERVAL_WEEK: // TODO: поправить округление для недель и месяцев
+            case CANDLE_INTERVAL_MONTH:
+                return startTime.withHour(0).withMinute(0);
+            default:
+                return startTime;
+        }
+    }
+
     public ZonedDateTime getEndTime(ZonedDateTime startTime, CandleInterval candleInterval) {
-        // TODO: дописать округление для младших таймфреймов
         switch (candleInterval) {
             case CANDLE_INTERVAL_1_MIN:
                 return startTime.plus(1, ChronoUnit.MINUTES);

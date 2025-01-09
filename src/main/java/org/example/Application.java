@@ -23,7 +23,7 @@ public class Application {
         String instrumentUid = args[1]; // e6123145-9665-43e0-8413-cd61b8aa9b13
         int startYear = Integer.parseInt(args[2]); // 2018
         int endYear = Integer.parseInt(args[3]); // 2024
-        CandleInterval candleInterval = CandleInterval.CANDLE_INTERVAL_HOUR;
+        CandleInterval candleInterval = CandleInterval.CANDLE_INTERVAL_30_MIN;
 
         InvestApiClient apiClient = new InvestApiClient();
         CsvHistoryReader csvReader = new CsvHistoryReader();
@@ -41,10 +41,6 @@ public class Application {
         futures.forEach(CompletableFuture::join);
         List<BarData> bars = csvReader.readHistoricalData(instrumentUid, startYear, endYear);
         BarSeries series = seriesCreator.createBarSeriesFromBars(bars, candleInterval);
-        log.info("Archive bars is:");
-        series.getBarData().forEach(bar -> log.info("Bar: {}", bar));
-        log.info("Test bars is:");
-        testSeries.getBarData().forEach(bar -> log.info("Test bar: {}", bar));
         log.info("Successfully created bar series with {} bars!", series.getBarCount());
     }
 
